@@ -16,33 +16,7 @@ You can find the **Easy Private Voting contract** in `./src/main.nr`. A simple i
 
 This repo connects to a locally running Aztec Sandbox by default, but can be configured to connect to the devnet by specifying `AZTEC_ENV=devnet` in a `.env` file or by prefixing a command e.g. `AZTEC_ENV=devnet yarn deploy`.
 
-<div align="center">
-
-[![GitHub Repo stars](https://img.shields.io/github/stars/AztecProtocol/aztec-starter?logo=github&color=yellow)](https://github.com/AztecProtocol/aztec-starter/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/AztecProtocol/aztec-starter?logo=github&color=blue)](https://github.com/AztecProtocol/aztec-starter/network/members)
-[![Build](https://github.com/AztecProtocol/aztec-starter/actions/workflows/update.yaml/badge.svg)](https://github.com/AztecProtocol/aztec-starter/actions)
-[![GitHub last commit](https://img.shields.io/github/last-commit/AztecProtocol/aztec-starter?logo=git)](https://github.com/AztecProtocol/aztec-starter/commits/main)
-[![License](https://img.shields.io/github/license/AztecProtocol/aztec-starter)](https://github.com/AztecProtocol/aztec-starter/blob/main/LICENSE)
-[![Discord](https://img.shields.io/badge/discord-join%20chat-5B5EA6)](https://discord.gg/aztec)
-[![Twitter Follow](https://img.shields.io/twitter/follow/aztecnetwork?style=flat&logo=twitter)](https://x.com/aztecnetwork)
-
-</div>
-
 ---
-
-## 🚀 **Getting Started**
-
-Use **Node.js version 22.15.0**.
-
-[Start your codespace from the codespace dropdown](https://docs.github.com/en/codespaces/getting-started/quickstart).
-
-Get the **sandbox, aztec-cli, and other tooling** with this command:
-
-```bash
-bash -i <(curl -s https://install.aztec.network)
-```
-
-Install the correct version of the toolkit with:
 
 ```bash
 export VERSION=3.0.0-devnet.5
@@ -65,7 +39,7 @@ The configuration files contain network URLs, timeouts, and environment-specific
 Start the sandbox with:
 
 ```bash
-aztec start --sandbox
+aztec start --local-network
 ```
 
 Run scripts and tests with default sandbox configuration:
@@ -219,19 +193,16 @@ This repository includes an [AGENTS.md](./AGENTS.md) file with detailed
 instructions for setting up your environment, running tests, and creating
 pull requests. Please read it before contributing changes.
 
-### 💬 Join the Community:
 
-<p align="left">
-  <a href="https://forum.aztec.network">
-    <img src="https://img.shields.io/badge/Aztec%20%20Forum-5C4C9F?style=for-the-badge&logo=startrek&logoColor=white" alt="Forum">
-  </a>  
-  <a href="https://t.me/AztecAnnouncements_Official">
-    <img src="https://img.shields.io/badge/Telegram-26A5E4?logo=telegram&logoColor=white&style=for-the-badge" alt="Telegram">
-  </a>
-  <a href="https://discord.gg/aztec">
-    <img src="https://img.shields.io/badge/Discord-5865F2?logo=discord&logoColor=white&style=for-the-badge" alt="Discord">
-  </a>
-  <a href="https://x.com/aztecnetwork">
-    <img src="https://img.shields.io/badge/Twitter-000000?logo=x&logoColor=white&style=for-the-badge" alt="Twitter (X)">
-  </a>
-</p>
+
+
+# What is Anvil
+
+Anvil is a fast local ethereum development node
+
+Anvil is part of the Foundry suit and is installed alongside forge, cast and chisel.
+
+```bash
+anvil --fork-url <RPC_URL>
+```
+
