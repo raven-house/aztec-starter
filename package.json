@@ -13,7 +13,7 @@
     "clean": "rm -rf ./src/artifacts ./target",
     "clear-store": "rm -rf ./store",
     "codegen": "aztec codegen target --outdir src/artifacts",
-    "bridge": "NODE_NO_WARNINGS=1 node --loader ts-node/esm scripts/token_bridge.ts",
+    "bridge": "bun run scripts/token_bridge.ts",
     "compile": "${AZTEC_NARGO:-aztec-nargo} compile && aztec-postprocess-contract",
     "deploy": "NODE_NO_WARNINGS=1 node --loader ts-node/esm scripts/deploy_contract.ts",
     "deploy::devnet": "NODE_NO_WARNINGS=1 AZTEC_ENV=devnet node --loader ts-node/esm scripts/deploy_contract.ts",
