@@ -15,6 +15,16 @@ export async function getSponsoredFPCInstance(): Promise<ContractInstanceWithAdd
   });
 }
 
+
+// export async function getTokenContractInstance(): Promise<ContractInstanceWithAddress> {
+//   return await getContractInstanceFromInstantiationParams(SponsoredFPCContract.artifact, {
+//     salt: SPONSORED_FPC_SALT,
+//   });
+// }
+
+
+
+
 export async function getSponsoredFPCAddress() {
   return (await getSponsoredFPCInstance()).address;
 }

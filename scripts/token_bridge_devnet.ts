@@ -9,36 +9,54 @@ import { registerInitialLocalNetworkAccountsInWallet, TestWallet } from "@aztec/
 import { EthAddress } from '@aztec/aztec.js/addresses'
 import { deployL1Contract } from "@aztec/ethereum/deploy-l1-contracts";
 import { TestERC20Abi, TestERC20Bytecode, FeeAssetHandlerAbi, FeeAssetHandlerBytecode, TokenPortalAbi, TokenPortalBytecode } from "@aztec/l1-artifacts";
-import { getContract } from "viem";
-import { TokenContract } from "@aztec/noir-contracts.js/Token";
+import { erc20Abi, getContract, PrivateKeyAccount } from "viem";
+import { TokenContract, TokenContractArtifact } from "@aztec/noir-contracts.js/Token";
 import { L1TokenManager, L1TokenPortalManager } from "@aztec/aztec.js/ethereum";
 import { createLogger } from "@aztec/aztec.js/log";
 import { TokenBridgeContract } from "@aztec/noir-contracts.js/TokenBridge";
 import { Fr } from "@aztec/aztec.js/fields";
 import { computeL2ToL1MembershipWitness } from "@aztec/stdlib/messaging";
+import { privateKeyToAccount } from "viem/accounts";
+import { getAccountFromEnv } from "../src/utils/create_account_from_env.js";
+import { sepolia } from "viem/chains";
+import { Contract, ContractInstanceWithAddress, getContractInstanceFromInstantiationParams } from "@aztec/aztec.js/contracts";
+import { getSponsoredFPCInstance } from "../src/utils/sponsored_fpc.js";
+import { SponsoredFPCContract } from "@aztec/noir-contracts.js/SponsoredFPC";
+import { SponsoredFeePaymentMethod } from "@aztec/aztec.js/fee";
 
 
 
-
-
-
-// this will not be on sepolia
-const MNEMONIC = 'test test test test test test test test test test test junk';
 
 // sepolia RPC url
 const l1RpcUrl = getL1RpcUrl();
 const logger = createLogger('raven: token-bridge');
 
 
-const l1Client = createExtendedL1Client(l1RpcUrl.split(','), MNEMONIC);
+console.log(l1RpcUrl)
+
+const privateKeyAccount = privateKeyToAccount(`0x${process.env.ETHEREUM_WALLET_PRIVATE_KEY || ""}`)
+const l1Client = createExtendedL1Client(l1RpcUrl.split(','), privateKeyAccount, sepolia);
+
+
+export async function getTokenContractInstance(args: any[]): Promise<ContractInstanceWithAddress> {
+  return await getContractInstanceFromInstantiationParams(TokenContractArtifact, {
+    constructorArgs: args,
+    salt: new Fr(1),
+  });
+}
+
+
 
 // metamask wallet address
 const ownerEthAddress = l1Client.account.address;
 const MINT_AMOUNT = BigInt(1e3);
 
+console.log({ ownerEthAddress, MINT_AMOUNT })
+// process.exit(1)
+
 // here we will connect with the aztec devnet
 
-const setupLocalNetwork = async () => {
+const setupDevnetNetwork = async () => {
   const nodeUrl = getAztecNodeUrl();
   const node = createAztecNodeClient(nodeUrl);
   await waitForNode(node);
@@ -50,7 +68,7 @@ const setupLocalNetwork = async () => {
 
 async function deployTestERC20(): Promise<EthAddress> {
 
-  const constructorArgs = ['Test Token', 'TEST', l1Client.account.address];
+  const constructorArgs = ['RAVEN Token', 'RAVENHOUSETEST', l1Client.account.address];
 
   return await deployL1Contract(l1Client, TestERC20Abi, TestERC20Bytecode, constructorArgs).then(
     ({ address }) => address,
@@ -84,9 +102,22 @@ async function addMinter(l1TokenContract: EthAddress, l1TokenHandler: EthAddress
 logger.info("Flow starts");
 
 
-const { wallet, node } = await setupLocalNetwork();
+const { wallet, node } = await setupDevnetNetwork();
 console.log("")
-const [ownerAztecAddress] = await registerInitialLocalNetworkAccountsInWallet(wallet);
+// const [ownerAztecAddress] = await registerInitialLocalNetworkAccountsInWallet(wallet);
+
+const ownerAztecAddress = (await (await getAccountFromEnv(wallet)).getAccount()).getAddress()
+
+
+const sponsoredFPC = await getSponsoredFPCInstance();
+logger.info(`💰 Sponsored FPC instance obtained at: ${sponsoredFPC.address}`);
+
+logger.info('📝 Registering sponsored FPC contract with wallet...');
+await wallet.registerContract(sponsoredFPC, SponsoredFPCContract.artifact);
+const sponsoredPaymentMethod = new SponsoredFeePaymentMethod(sponsoredFPC.address);
+console.log(ownerAztecAddress)
+
+
 // console.log('Local network setup complete');
 const l1ContractAddresses = (await node.getNodeInfo()).l1ContractAddresses;
 logger.info('L1 Contract Addresses:');
@@ -95,19 +126,48 @@ logger.info(`Inbox Address: ${l1ContractAddresses.inboxAddress}`);
 logger.info(`Outbox Address: ${l1ContractAddresses.outboxAddress}`);
 logger.info(`Rollup Address: ${l1ContractAddresses.rollupAddress}`);
 
-const l2TokenContract = await TokenContract.deploy(wallet, ownerAztecAddress, 'L2 Token', 'L2', 18)
-  .send({ from: ownerAztecAddress })
-  .deployed();
-logger.info(`L2 token contract deployed at ${l2TokenContract.address}`);
+
+// process.exit(1)
+
+const l2TokenContractInstance = await getTokenContractInstance([ownerAztecAddress, 'Raven L2 TEST', 'RAVENL2TEST', 18])
+await wallet.registerContract(l2TokenContractInstance, TokenContractArtifact)
+
+// const l2TokenContract = await TokenContract.deploy(wallet, ownerAztecAddress, 'Raven L2 TEST', 'RAVENL2TEST', 18)
+//   .send({
+//     from: ownerAztecAddress, fee: {
+//       paymentMethod: sponsoredPaymentMethod
+//     }
+//   })
+//   .deployed();
+
+const contract = await Contract.deploy(wallet, TokenContractArtifact, [ownerAztecAddress, 'Raven L2 TEST', 'RAVENL2TEST', 18], "constructor").send({
+  from: ownerAztecAddress, fee: { paymentMethod: sponsoredPaymentMethod }
+}).deployed()
+logger.info(`L2 token contract deployed at ${contract.address}`);
+
+
+process.exit(1)
 
 // Deploy L1 token contract & mint tokens
-const l1TokenContract = await deployTestERC20();
-logger.info('erc20 contract deployed');
+// const l1TokenContract = await deployTestERC20();
+// console.log("l1 token address", l1TokenContract.toString())
+// logger.info('erc20 contract deployed');
+// process.exit(1);
 
-const feeAssetHandler = await deployFeeAssetHandler(l1TokenContract);
-await addMinter(l1TokenContract, feeAssetHandler);
+// const l1TokenContract = getContract({
+//   address: `0x${process.env.RAVENHOUSETEST_TOKEN_ADDRESS}`,
+//   abi: erc20Abi,
+//   client: l1Client
+// })
 
-const l1TokenManager = new L1TokenManager(l1TokenContract, feeAssetHandler, l1Client, logger);
+// await addMinter(l1TokenContractAddress, "YASH METAMASK ADDRESS");
+
+const l1TokenContractAddress = EthAddress.fromString(process.env.RAVENHOUSETEST_TOKEN_ADDRESS || "")
+
+const feeAssetHandler = await deployFeeAssetHandler(l1TokenContractAddress);
+await addMinter(l1TokenContractAddress, feeAssetHandler);
+
+const l1TokenManager = new L1TokenManager(l1TokenContractAddress, feeAssetHandler, l1Client, logger);
 
 // Deploy L1 portal contract
 const l1PortalContractAddress = await deployTokenPortal();
@@ -118,6 +178,7 @@ const l1Portal = getContract({
   abi: TokenPortalAbi,
   client: l1Client,
 });
+
 // Deploy L2 bridge contract
 const l2BridgeContract = await TokenBridgeContract.deploy(wallet, l2TokenContract.address, l1PortalContractAddress)
   .send({ from: ownerAztecAddress })

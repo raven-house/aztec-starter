@@ -1,8 +1,6 @@
 import { Fr, GrumpkinScalar } from "@aztec/aztec.js/fields";
 import { Logger, createLogger } from "@aztec/aztec.js/log";
 import { AccountManager } from "@aztec/aztec.js/wallet";
-import { PXE } from "@aztec/pxe/client/bundle";
-import { setupWallet } from "./setup_wallet.js";
 import * as dotenv from 'dotenv';
 import { TestWallet } from "@aztec/test-wallet/server";
 
@@ -16,9 +14,9 @@ export async function createAccountFromEnv(wallet: TestWallet): Promise<AccountM
     logger.info('🔐 Creating Schnorr account from environment variables...');
 
     // Read SECRET and SALT from environment variables
-    const secretEnv = process.env.SECRET;
-    const signingKeyEnv = process.env.SIGNING_KEY;
-    const saltEnv = process.env.SALT;
+    const secretEnv = process.env.ADMIN_SECRET_KEY;
+    const signingKeyEnv = process.env.ADMIN_SIGNING_KEY;
+    const saltEnv = process.env.ADMIN_SALT;
 
     if (!secretEnv) {
         throw new Error('SECRET environment variable is required. Please set it in your .env file.');
