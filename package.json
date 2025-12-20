@@ -23,7 +23,7 @@
     "interaction-existing-contract::devnet": "NODE_NO_WARNINGS=1 AZTEC_ENV=devnet node --loader ts-node/esm scripts/interaction_existing_contract.ts",
     "multiple-wallet": "NODE_NO_WARNINGS=1 node --loader ts-node/esm scripts/multiple_wallet.ts",
     "multiple-wallet::devnet": "NODE_NO_WARNINGS=1 AZTEC_ENV=devnet node --loader ts-node/esm scripts/multiple_wallet.ts",
-    "get-block": "NODE_NO_WARNINGS=1 node --loader ts-node/esm scripts/get_block.ts",
+    "get-block": "bun run scripts/get_block.ts",
     "get-block::devnet": "NODE_NO_WARNINGS=1 AZTEC_ENV=devnet node --loader ts-node/esm scripts/get_block.ts",
     "profile": "NODE_NO_WARNINGS=1 node --loader ts-node/esm scripts/profile_deploy.ts",
     "profile::devnet": "NODE_NO_WARNINGS=1 AZTEC_ENV=devnet node --loader ts-node/esm scripts/profile_deploy.ts",

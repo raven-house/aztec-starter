@@ -1,10 +1,5 @@
-<div align="center">
-  <a href="https://aztec.network">
-    <img src="https://cdn.prod.website-files.com/6847005bc403085c1aa846e0/6847514dc37a9e8cfe8a66b8_aztec-logo.svg" alt="Aztec Protocol Logo" width="300">
-  </a>
-</div>
 
-# Aztec Bridge basics
+# Raven Aztec bridge
 
 ## Sandbox
 
@@ -14,7 +9,7 @@ You can find the **Easy Private Voting contract** in `./src/main.nr`. A simple i
 
 ## Devnet
 
-This repo connects to a locally running Aztec Sandbox by default, but can be configured to connect to the devnet by specifying `AZTEC_ENV=devnet` in a `.env` file or by prefixing a command e.g. `AZTEC_ENV=devnet yarn deploy`.
+This repo connects to a locally running Aztec Sandbox by default, but can be configured to connect to the devnet by specifying `AZTEC_ENV=devnet` in a `.env` file or by prefixing a command e.g. `AZTEC_ENV=devnet bun deploy`.
 
 ---
 
@@ -45,9 +40,9 @@ aztec start --local-network
 Run scripts and tests with default sandbox configuration:
 
 ```bash
-yarn compile && yarn codegen  # Compile contract and generate TS
-yarn deploy       # Deploy to sandbox
-yarn test         # Run tests on sandbox
+bun compile && bun codegen  # Compile contract and generate TS
+bun deploy       # Deploy to sandbox
+bun test         # Run tests on sandbox
 ```
 
 ### Running on Devnet
@@ -55,10 +50,10 @@ yarn test         # Run tests on sandbox
 All scripts support a `::devnet` suffix to automatically use devnet configuration:
 
 ```bash
-yarn deploy::devnet              # Deploy to devnet
-yarn test::devnet                # Run tests on devnet
-yarn deploy-account::devnet      # Deploy account to devnet
-yarn interaction-existing-contract::devnet  # Interact with devnet contracts
+bun deploy::devnet              # Deploy to devnet
+bun test::devnet                # Run tests on devnet
+bun deploy-account::devnet      # Deploy account to devnet
+bun interaction-existing-contract::devnet  # Interact with devnet contracts
 ```
 
 The `::devnet` suffix automatically sets `ENV=devnet`, loading configuration from `config/devnet.json`.
@@ -68,7 +63,7 @@ The `::devnet` suffix automatically sets `ENV=devnet`, loading configuration fro
 ## 📦 **Install Packages**
 
 ```bash
-yarn install
+bun install
 ```
 
 ---
@@ -82,7 +77,7 @@ aztec-nargo compile
 or
 
 ```bash
-yarn compile
+bun compile
 ```
 
 ---
@@ -92,7 +87,7 @@ yarn compile
 Generate the **contract artifact JSON** and TypeScript interface:
 
 ```bash
-yarn codegen
+bun codegen
 ```
 
 ---
@@ -110,13 +105,13 @@ aztec start --sandbox
 Then run an example contract deployment profile with:
 
 ```bash
-yarn profile
+bun profile
 ```
 
 You can specify the bb binary path for faster native proving, e.g.
 
 ```bash
-BB_BINARY_PATH="/home/user/.bb/bb" BB_WORKING_DIRECTORY="/tmp/bb" CRS_PATH="/tmp/bb" yarn profile
+BB_BINARY_PATH="/home/user/.bb/bb" BB_WORKING_DIRECTORY="/tmp/bb" CRS_PATH="/tmp/bb" bun profile
 ```
 
 See the [demo-wallet for an example](https://github.com/AztecProtocol/demo-wallet/blob/main/app/scripts/copyBB.js) of how to fetch the appropriate bb binary (version and OS) in an application.
@@ -132,7 +127,7 @@ aztec start --sandbox
 Then test with:
 
 ```bash
-yarn test
+bun test
 ```
 
 Testing will run the **TypeScript tests** defined in `index.test.ts` inside `./src/test/e2e`, as well as the [Aztec Testing eXecution Environment (TXE)](https://docs.aztec.network/developers/guides/smart_contracts/testing) tests defined in [`first.nr`](./src/test/first.nr) (imported in the contract file with `mod test;`).
@@ -170,7 +165,7 @@ The `./src/utils/` folder contains utility functions:
 ### 🔄 **Update Node.js and Noir Dependencies**
 
 ```bash
-yarn update
+bun update
 ```
 
 ### 🔄 **Update Contract**
@@ -178,7 +173,7 @@ yarn update
 Get the **contract code from the monorepo**. The script will look at the versions defined in `./Nargo.toml` and fetch that version of the code from the monorepo.
 
 ```bash
-yarn update
+bun update
 ```
 
 You may need to update permissions with:

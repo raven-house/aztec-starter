@@ -1,3 +1,7 @@
+// This token bridge is to bridge tokens from Ethereum sepolia to aztec devnet
+
+
+
 import { createAztecNodeClient, waitForNode } from "@aztec/aztec.js/node";
 import { getAztecNodeUrl, getL1RpcUrl } from "../config/config.js";
 import { createExtendedL1Client } from '@aztec/ethereum/client'
@@ -45,7 +49,7 @@ const setupLocalNetwork = async () => {
 };
 
 async function deployTestERC20(): Promise<EthAddress> {
-  
+
   const constructorArgs = ['Test Token', 'TEST', l1Client.account.address];
 
   return await deployL1Contract(l1Client, TestERC20Abi, TestERC20Bytecode, constructorArgs).then(
