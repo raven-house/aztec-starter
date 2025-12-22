@@ -1,0 +1,2 @@
+[workspace]
+members = ["value_not_equal"]
