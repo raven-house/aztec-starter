@@ -130,14 +130,19 @@ logger.info(`Rollup Address: ${l1ContractAddresses.rollupAddress}`);
 
 // process.exit(1)
 
-// const l2TokenContract = await Contract.deploy(wallet, TokenContractArtifact, [ownerAztecAddress, 'Raven L2 TEST', 'RAVENL2TEST', 18], "constructor").send({
+const L2_TOKEN_ARGS = [ownerAztecAddress, 'Raven L2 TEST', 'RAVENL2TEST', 18] as any
+
+// const l2TokenContract = await Contract.deploy(wallet, TokenContractArtifact, L2_TOKEN_ARGS, "constructor").send({
 //   from: ownerAztecAddress, fee: { paymentMethod: sponsoredPaymentMethod },
 //   contractAddressSalt: L2_TOKEN_CONTRACT_SALT
 // }).deployed()
 
-const l2TokenContractInstance = await getContractInstance([ownerAztecAddress, 'Raven L2 TEST', 'RAVENL2TEST', 18], ownerAztecAddress, L2_TOKEN_CONTRACT_SALT, TokenContractArtifact)
+//comment this when deploying new contract
+const l2TokenContractInstance = await getContractInstance(L2_TOKEN_ARGS, ownerAztecAddress, L2_TOKEN_CONTRACT_SALT, TokenContractArtifact)
 await wallet.registerContract(l2TokenContractInstance, TokenContractArtifact)
 const l2TokenContract = await TokenContract.at(AztecAddress.fromString(process.env.RAVENHOUSETEST_L2_TOKEN_ADDRESS || ""), wallet)
+
+
 logger.info(`L2 token contract deployed at ${l2TokenContract.address}`);
 // await contract.methods.set_minter(AztecAddress.fromString(process.env.AZTEC_ADMIN2_ADDRESS || ""), true).send({ from: ownerAztecAddress, fee: { paymentMethod: sponsoredPaymentMethod } }).wait();
 
@@ -221,6 +226,9 @@ const l1PortalManager = new L1TokenPortalManager(
   l1Client,
   logger,
 );
+
+
+
 // docs:end:setup-portal
 
 // docs:start:l1-bridge-public
