@@ -4,16 +4,16 @@
 
 import { createAztecNodeClient, waitForNode } from "@aztec/aztec.js/node";
 import { getAztecNodeUrl, getL1RpcUrl } from "../config/config.js";
-import { createExtendedL1Client } from '@aztec/ethereum/client'
-import { registerInitialLocalNetworkAccountsInWallet, TestWallet } from "@aztec/test-wallet/server";
-import { EthAddress } from '@aztec/aztec.js/addresses'
+import { createExtendedL1Client } from '@aztec/ethereum'
+import { TestWallet } from "@aztec/test-wallet/server";
+import { AztecAddress, EthAddress } from '@aztec/aztec.js/addresses'
 import { deployL1Contract } from "@aztec/ethereum/deploy-l1-contracts";
 import { TestERC20Abi, TestERC20Bytecode, FeeAssetHandlerAbi, FeeAssetHandlerBytecode, TokenPortalAbi, TokenPortalBytecode } from "@aztec/l1-artifacts";
 import { erc20Abi, getContract, PrivateKeyAccount } from "viem";
 import { TokenContract, TokenContractArtifact } from "@aztec/noir-contracts.js/Token";
 import { L1TokenManager, L1TokenPortalManager } from "@aztec/aztec.js/ethereum";
 import { createLogger } from "@aztec/aztec.js/log";
-import { TokenBridgeContract } from "@aztec/noir-contracts.js/TokenBridge";
+import { TokenBridgeContract, TokenBridgeContractArtifact } from "@aztec/noir-contracts.js/TokenBridge";
 import { Fr } from "@aztec/aztec.js/fields";
 import { computeL2ToL1MembershipWitness } from "@aztec/stdlib/messaging";
 import { privateKeyToAccount } from "viem/accounts";
@@ -23,7 +23,7 @@ import { Contract, ContractInstanceWithAddress, getContractInstanceFromInstantia
 import { getSponsoredFPCInstance } from "../src/utils/sponsored_fpc.js";
 import { SponsoredFPCContract } from "@aztec/noir-contracts.js/SponsoredFPC";
 import { SponsoredFeePaymentMethod } from "@aztec/aztec.js/fee";
-
+import { AztecAddressLike } from "@aztec/aztec.js/abi";
 
 
 
@@ -35,17 +35,18 @@ const logger = createLogger('raven: token-bridge');
 console.log(l1RpcUrl)
 
 const privateKeyAccount = privateKeyToAccount(`0x${process.env.ETHEREUM_WALLET_PRIVATE_KEY || ""}`)
-const l1Client = createExtendedL1Client(l1RpcUrl.split(','), privateKeyAccount, sepolia);
+const l1Client = createExtendedL1Client(l1RpcUrl.split(','), privateKeyAccount, sepolia,);
+const L2_TOKEN_CONTRACT_SALT = new Fr(1);
 
 
-export async function getTokenContractInstance(args: any[]): Promise<ContractInstanceWithAddress> {
-  return await getContractInstanceFromInstantiationParams(TokenContractArtifact, {
+
+export async function getContractInstance(args: any[], deployer: AztecAddress, salt: Fr, artifact: any): Promise<ContractInstanceWithAddress> {
+  return await getContractInstanceFromInstantiationParams(artifact, {
     constructorArgs: args,
-    salt: new Fr(1),
+    salt: L2_TOKEN_CONTRACT_SALT,
+    deployer
   });
 }
-
-
 
 // metamask wallet address
 const ownerEthAddress = l1Client.account.address;
@@ -129,49 +130,46 @@ logger.info(`Rollup Address: ${l1ContractAddresses.rollupAddress}`);
 
 // process.exit(1)
 
-const l2TokenContractInstance = await getTokenContractInstance([ownerAztecAddress, 'Raven L2 TEST', 'RAVENL2TEST', 18])
+// const l2TokenContract = await Contract.deploy(wallet, TokenContractArtifact, [ownerAztecAddress, 'Raven L2 TEST', 'RAVENL2TEST', 18], "constructor").send({
+//   from: ownerAztecAddress, fee: { paymentMethod: sponsoredPaymentMethod },
+//   contractAddressSalt: L2_TOKEN_CONTRACT_SALT
+// }).deployed()
+
+const l2TokenContractInstance = await getContractInstance([ownerAztecAddress, 'Raven L2 TEST', 'RAVENL2TEST', 18], ownerAztecAddress, L2_TOKEN_CONTRACT_SALT, TokenContractArtifact)
 await wallet.registerContract(l2TokenContractInstance, TokenContractArtifact)
-
-// const l2TokenContract = await TokenContract.deploy(wallet, ownerAztecAddress, 'Raven L2 TEST', 'RAVENL2TEST', 18)
-//   .send({
-//     from: ownerAztecAddress, fee: {
-//       paymentMethod: sponsoredPaymentMethod
-//     }
-//   })
-//   .deployed();
-
-const contract = await Contract.deploy(wallet, TokenContractArtifact, [ownerAztecAddress, 'Raven L2 TEST', 'RAVENL2TEST', 18], "constructor").send({
-  from: ownerAztecAddress, fee: { paymentMethod: sponsoredPaymentMethod }
-}).deployed()
-logger.info(`L2 token contract deployed at ${contract.address}`);
+const l2TokenContract = await TokenContract.at(AztecAddress.fromString(process.env.RAVENHOUSETEST_L2_TOKEN_ADDRESS || ""), wallet)
+logger.info(`L2 token contract deployed at ${l2TokenContract.address}`);
+// await contract.methods.set_minter(AztecAddress.fromString(process.env.AZTEC_ADMIN2_ADDRESS || ""), true).send({ from: ownerAztecAddress, fee: { paymentMethod: sponsoredPaymentMethod } }).wait();
 
 
-process.exit(1)
 
 // Deploy L1 token contract & mint tokens
 // const l1TokenContract = await deployTestERC20();
 // console.log("l1 token address", l1TokenContract.toString())
 // logger.info('erc20 contract deployed');
 // process.exit(1);
-
-// const l1TokenContract = getContract({
-//   address: `0x${process.env.RAVENHOUSETEST_TOKEN_ADDRESS}`,
-//   abi: erc20Abi,
-//   client: l1Client
-// })
+const l1TokenContractAddress = EthAddress.fromString(process.env.RAVENHOUSETEST_TOKEN_ADDRESS || "")
+const l1TokenContract = getContract({
+  address: l1TokenContractAddress.toString(),
+  abi: erc20Abi,
+  client: l1Client
+})
 
 // await addMinter(l1TokenContractAddress, "YASH METAMASK ADDRESS");
 
-const l1TokenContractAddress = EthAddress.fromString(process.env.RAVENHOUSETEST_TOKEN_ADDRESS || "")
-
-const feeAssetHandler = await deployFeeAssetHandler(l1TokenContractAddress);
+// const feeAssetHandler = await deployFeeAssetHandler(l1TokenContractAddress);
+const feeAssetHandler = EthAddress.fromString(process.env.L1_FEE_ASSET_HANDLER_ADDRESS || "")
 await addMinter(l1TokenContractAddress, feeAssetHandler);
+
+console.log("L1 fee asset handler address", feeAssetHandler.toString())
 
 const l1TokenManager = new L1TokenManager(l1TokenContractAddress, feeAssetHandler, l1Client, logger);
 
-// Deploy L1 portal contract
-const l1PortalContractAddress = await deployTokenPortal();
-logger.info('L1 portal contract deployed');
+// Deploy L1 portal contract: only deploy once
+// const l1PortalContractAddress = await deployTokenPortal();
+const l1PortalContractAddress = EthAddress.fromString(process.env.L1_PORTAL_CONTRACT_ADDRESS || "")
+logger.info('L1 portal contract deployed with address', l1PortalContractAddress.toString());
+
 
 const l1Portal = getContract({
   address: l1PortalContractAddress.toString(),
@@ -179,29 +177,45 @@ const l1Portal = getContract({
   client: l1Client,
 });
 
+// process.exit(1)
+
+const L2_BRIDGE_CONTRACT_ARGS = [l2TokenContract.address, l1PortalContractAddress] as any
 // Deploy L2 bridge contract
-const l2BridgeContract = await TokenBridgeContract.deploy(wallet, l2TokenContract.address, l1PortalContractAddress)
-  .send({ from: ownerAztecAddress })
-  .deployed();
+// const l2BridgeContract = await TokenBridgeContract.deploy(wallet, L2_BRIDGE_CONTRACT_ARGS[0], L2_BRIDGE_CONTRACT_ARGS[1])
+//   .send({ from: ownerAztecAddress, fee: { paymentMethod: sponsoredPaymentMethod }, contractAddressSalt: L2_TOKEN_CONTRACT_SALT })
+//   .deployed();
+
+//comments this 3 lines if deploying new contract
+const l2BridgeContractInstance = await getContractInstance(L2_BRIDGE_CONTRACT_ARGS, ownerAztecAddress, L2_BRIDGE_CONTRACT_ARGS, TokenBridgeContractArtifact)
+await wallet.registerContract(l2BridgeContractInstance, TokenBridgeContractArtifact)
+const l2BridgeContract = await TokenBridgeContract.at(l2BridgeContractInstance.address, wallet)
+
 logger.info(`L2 token bridge contract deployed at ${l2BridgeContract.address}`);
 // docs:end:deploy-l2-bridge
 
 // Set Bridge as a minter
 // docs:start:authorize-l2-bridge
-await l2TokenContract.methods.set_minter(l2BridgeContract.address, true).send({ from: ownerAztecAddress }).wait();
+await l2TokenContract.methods.set_minter(l2BridgeContract.address, true).send({ from: ownerAztecAddress, fee: { paymentMethod: sponsoredPaymentMethod } }).wait();
 // docs:end:authorize-l2-bridge
 
 // Initialize L1 portal contract
 // docs:start:setup-portal
 await l1Portal.write.initialize(
-  [l1ContractAddresses.registryAddress.toString(), l1TokenContract.toString(), l2BridgeContract.address.toString()],
+  [l1ContractAddresses.registryAddress.toString(), l1TokenContractAddress.toString(), l2BridgeContract.address.toString()],
   {},
 );
 logger.info('L1 portal contract initialized');
 
+console.log({
+  l1PortalContractAddress,
+  l1TokenContractAddress,
+  feeAssetHandler,
+  outboxAddress: l1ContractAddresses.outboxAddress,
+})
+
 const l1PortalManager = new L1TokenPortalManager(
   l1PortalContractAddress,
-  l1TokenContract,
+  l1TokenContractAddress,
   feeAssetHandler,
   l1ContractAddresses.outboxAddress,
   l1Client,
@@ -214,15 +228,15 @@ const claim = await l1PortalManager.bridgeTokensPublic(ownerAztecAddress, MINT_A
 
 // Do 2 unrelated actions because
 // https://github.com/AztecProtocol/aztec-packages/blob/7e9e2681e314145237f95f79ffdc95ad25a0e319/yarn-project/end-to-end/src/shared/cross_chain_test_harness.ts#L354-L355
-await l2TokenContract.methods.mint_to_public(ownerAztecAddress, 0n).send({ from: ownerAztecAddress }).wait();
-await l2TokenContract.methods.mint_to_public(ownerAztecAddress, 0n).send({ from: ownerAztecAddress }).wait();
+await l2TokenContract.methods.mint_to_public(ownerAztecAddress, 0n).send({ from: ownerAztecAddress, fee: { paymentMethod: sponsoredPaymentMethod } }).wait();
+await l2TokenContract.methods.mint_to_public(ownerAztecAddress, 0n).send({ from: ownerAztecAddress, fee: { paymentMethod: sponsoredPaymentMethod } }).wait();
 // docs:end:l1-bridge-public
 
 // Claim tokens publicly on L2
 // docs:start:claim
 await l2BridgeContract.methods
   .claim_public(ownerAztecAddress, MINT_AMOUNT, claim.claimSecret, claim.messageLeafIndex)
-  .send({ from: ownerAztecAddress })
+  .send({ from: ownerAztecAddress, fee: { paymentMethod: sponsoredPaymentMethod } })
   .wait();
 const balance = await l2TokenContract.methods
   .balance_of_public(ownerAztecAddress)
@@ -247,7 +261,7 @@ const authwit = await wallet.setPublicAuthWit(
   },
   true,
 );
-await authwit.send().wait();
+await authwit.send({ fee: { paymentMethod: sponsoredPaymentMethod } }).wait();
 // docs:end:setup-withdrawal
 
 // docs:start:l2-withdraw
@@ -259,7 +273,7 @@ const l2ToL1Message = await l1PortalManager.getL2ToL1MessageLeaf(
 );
 const l2TxReceipt = await l2BridgeContract.methods
   .exit_to_l1_public(EthAddress.fromString(ownerEthAddress), withdrawAmount, EthAddress.ZERO, authwitNonce)
-  .send({ from: ownerAztecAddress })
+  .send({ from: ownerAztecAddress, fee: { paymentMethod: sponsoredPaymentMethod } })
   .wait();
 
 const newL2Balance = await l2TokenContract.methods

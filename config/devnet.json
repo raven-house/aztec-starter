@@ -2,8 +2,8 @@
   "name": "devnet",
   "environment": "devnet",
   "network": {
-    "nodeUrl": "https://next.devnet.aztec-labs.com",
-    "l1RpcUrl": "https://ethereum-sepolia-rpc.publicnode.com",
+    "nodeUrl": "https://devnet.aztec-labs.com",
+    "l1RpcUrl": "https://sepolia.infura.io/v3/eefe96c240bc4745a6d895d83d3968b4",
     "l1ChainId": 11155111
   },
   "settings": {
