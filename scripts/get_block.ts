@@ -8,13 +8,16 @@ async function main() {
     const node = createAztecNodeClient(nodeUrl);
 
     const nodeInfo = (await node.getNodeInfo())
+    const provenBlockNo = await node.getProvenBlockNumber()
+    const blockNo = await node.getBlockNumber()
+    const blockHeader = await node.getBlockHeader()
     const l1ContractAddresses = nodeInfo.l1ContractAddresses
     const protocolContractAddresses = nodeInfo.protocolContractAddresses
     const rollupVersion = nodeInfo.rollupVersion
     const l1ChainId = nodeInfo.l1ChainId
     const nodeVersion = nodeInfo.nodeVersion
 
-    console.log({ l1ContractAddresses, protocolContractAddresses, rollupVersion, l1ChainId, nodeVersion })
+    console.log({ l1ContractAddresses, protocolContractAddresses, rollupVersion, l1ChainId, nodeVersion, blockNo, provenBlockNo })
 
     // console.log(await node.getChainId())
     // let block = await node.getBlock("latest");

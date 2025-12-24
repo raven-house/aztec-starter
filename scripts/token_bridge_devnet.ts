@@ -23,7 +23,7 @@ import { Contract, ContractInstanceWithAddress, getContractInstanceFromInstantia
 import { getSponsoredFPCInstance } from "../src/utils/sponsored_fpc.js";
 import { SponsoredFPCContract } from "@aztec/noir-contracts.js/SponsoredFPC";
 import { SponsoredFeePaymentMethod } from "@aztec/aztec.js/fee";
-import { AztecAddressLike } from "@aztec/aztec.js/abi";
+import { sleep } from "../src/utils/time.js";
 
 
 
@@ -232,24 +232,33 @@ const l1PortalManager = new L1TokenPortalManager(
 // docs:end:setup-portal
 
 // docs:start:l1-bridge-public
-const claim = await l1PortalManager.bridgeTokensPublic(ownerAztecAddress, MINT_AMOUNT, true);
+// const claim = await l1PortalManager.bridgeTokensPublic(ownerAztecAddress, MINT_AMOUNT, true);
+
+// const currentNode = await node.getBlockNumber();
+// let initial = currentNode;
+
+
+// while (initial < currentNode + 3) {
+//   console.log("Sleeping for 5 seconds")
+//   await sleep(5000)
+//   initial = await node.getBlockNumber()
+// }
+// somehow here wait for two-three blocks to process.
+
 
 // Do 2 unrelated actions because
-// https://github.com/AztecProtocol/aztec-packages/blob/7e9e2681e314145237f95f79ffdc95ad25a0e319/yarn-project/end-to-end/src/shared/cross_chain_test_harness.ts#L354-L355
-await l2TokenContract.methods.mint_to_public(ownerAztecAddress, 0n).send({ from: ownerAztecAddress, fee: { paymentMethod: sponsoredPaymentMethod } }).wait();
-await l2TokenContract.methods.mint_to_public(ownerAztecAddress, 0n).send({ from: ownerAztecAddress, fee: { paymentMethod: sponsoredPaymentMethod } }).wait();
-// docs:end:l1-bridge-public
+// TODO: Find a better way to wait till this claim is available on L2
 
 // Claim tokens publicly on L2
 // docs:start:claim
-await l2BridgeContract.methods
-  .claim_public(ownerAztecAddress, MINT_AMOUNT, claim.claimSecret, claim.messageLeafIndex)
-  .send({ from: ownerAztecAddress, fee: { paymentMethod: sponsoredPaymentMethod } })
-  .wait();
-const balance = await l2TokenContract.methods
-  .balance_of_public(ownerAztecAddress)
-  .simulate({ from: ownerAztecAddress });
-logger.info(`Public L2 balance of ${ownerAztecAddress} is ${balance}`);
+// await l2BridgeContract.methods
+//   .claim_public(ownerAztecAddress, MINT_AMOUNT, claim.claimSecret, claim.messageLeafIndex)
+//   .send({ from: ownerAztecAddress, fee: { paymentMethod: sponsoredPaymentMethod } })
+//   .wait();
+// const balance = await l2TokenContract.methods
+//   .balance_of_public(ownerAztecAddress)
+//   .simulate({ from: ownerAztecAddress });
+// logger.info(`Public L2 balance of ${ownerAztecAddress} is ${balance}`);
 // docs:end:claim
 
 logger.info('Withdrawing funds from L2');
@@ -296,6 +305,15 @@ if (!result) {
   throw new Error('L2 to L1 message not found');
 }
 
+const currentNode = await node.getBlockNumber();
+let initial = currentNode;
+
+
+while (initial < currentNode + 3) {
+  console.log(`Sleeping for 5 seconds while aztec node no ${initial} gets bigger`)
+  await sleep(5000)
+  initial = await node.getBlockNumber()
+}
 await l1PortalManager.withdrawFunds(
   withdrawAmount,
   EthAddress.fromString(ownerEthAddress),
