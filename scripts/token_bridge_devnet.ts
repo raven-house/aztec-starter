@@ -305,14 +305,15 @@ if (!result) {
   throw new Error('L2 to L1 message not found');
 }
 
-const currentNode = await node.getBlockNumber();
-let initial = currentNode;
+const currentBlock = await node.getBlockNumber();
+let provenBlock = await node.getProvenBlockNumber();
+// let initial = currentNode;?
 
 
-while (initial < currentNode + 3) {
-  console.log(`Sleeping for 5 seconds while aztec node no ${initial} gets bigger`)
+while (provenBlock < currentBlock) {
+  console.log(`Sleeping for 5 seconds while aztec node no ${provenBlock} gets bigger. current Block ${currentBlock}`)
   await sleep(5000)
-  initial = await node.getBlockNumber()
+  provenBlock = await node.getProvenBlockNumber()
 }
 await l1PortalManager.withdrawFunds(
   withdrawAmount,
