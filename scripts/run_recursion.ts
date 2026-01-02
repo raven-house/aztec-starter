@@ -4,7 +4,7 @@ import type { FieldLike } from "@aztec/aztec.js/abi";
 import { getSponsoredFPCInstance } from "../utils/sponsored_fpc.js";
 import { SponsoredFPCContract } from "@aztec/noir-contracts.js/SponsoredFPC";
 import { ValueNotEqualContract } from "../contracts/artifacts/ValueNotEqual.js";
-import data from "../data.json";
+import data from "../data2.json";
 import { getPXEConfig } from "@aztec/pxe/config";
 import { TestWallet } from "@aztec/test-wallet/server";
 import { AztecAddress } from "@aztec/aztec.js/addresses";
@@ -51,14 +51,11 @@ export const setupWallet = async (): Promise<TestWallet> => {
   try {
     const aztecNode = await createAztecNodeClient(NODE_URL);
     const config = getPXEConfig();
-    await rm("pxe", { recursive: true, force: true });
-    config.dataDirectory = "pxe";
-    config.proverEnabled = true;
+    // await rm("pxe", { recursive: true, force: true });
+    // config.dataDirectory = "pxe";
+    config.proverEnabled = false;
     let wallet = await TestWallet.create(aztecNode, config);
-    await wallet.registerContract({
-      instance: sponsoredFPC,
-      artifact: SponsoredFPCContract.artifact,
-    });
+    await wallet.registerContract(sponsoredFPC, SponsoredFPCContract.artifact);
 
     return wallet;
   } catch (error) {
@@ -69,8 +66,10 @@ export const setupWallet = async (): Promise<TestWallet> => {
 
 async function main() {
   const testWallet = await setupWallet();
+  console.log("Wallet set up");
   const account = await testWallet.createAccount();
   const manager = await account.getDeployMethod();
+  const initialCounterValue = 10n;
   await manager
     .send({
       from: AztecAddress.ZERO,
@@ -81,7 +80,7 @@ async function main() {
 
   const valueNotEqual = await ValueNotEqualContract.deploy(
     testWallet,
-    10,
+    initialCounterValue,
     accounts[0].item
   )
     .send({

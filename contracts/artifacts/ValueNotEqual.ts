@@ -4,7 +4,7 @@
 /* eslint-disable */
 import { AztecAddress, CompleteAddress } from '@aztec/aztec.js/addresses';
 import { type AbiType, type AztecAddressLike, type ContractArtifact, EventSelector, decodeFromAbi, type EthAddressLike, type FieldLike, type FunctionSelectorLike, loadContractArtifact, loadContractArtifactForPublic, type NoirCompiledContract, type U128Like, type WrappedFieldLike } from '@aztec/aztec.js/abi';
-import { Contract, ContractBase, ContractFunctionInteraction, type ContractInstanceWithAddress, type ContractMethod, type ContractStorageLayout, DeployMethod } from '@aztec/aztec.js/contracts';
+import { Contract, ContractBase, ContractFunctionInteraction, type ContractMethod, type ContractStorageLayout, DeployMethod } from '@aztec/aztec.js/contracts';
 import { EthAddress } from '@aztec/aztec.js/addresses';
 import { Fr, Point } from '@aztec/aztec.js/fields';
 import { type PublicKey, PublicKeys } from '@aztec/aztec.js/keys';
@@ -20,10 +20,10 @@ export const ValueNotEqualContractArtifact = loadContractArtifact(ValueNotEqualC
 export class ValueNotEqualContract extends ContractBase {
   
   private constructor(
-    instance: ContractInstanceWithAddress,
+    address: AztecAddress,
     wallet: Wallet,
   ) {
-    super(instance, ValueNotEqualContractArtifact, wallet);
+    super(address, ValueNotEqualContractArtifact, wallet);
   }
   
 
@@ -32,13 +32,13 @@ export class ValueNotEqualContract extends ContractBase {
    * Creates a contract instance.
    * @param address - The deployed contract's address.
    * @param wallet - The wallet to use when interacting with the contract.
-   * @returns A promise that resolves to a new Contract instance.
+   * @returns A new Contract instance.
    */
-  public static async at(
+  public static at(
     address: AztecAddress,
     wallet: Wallet,
-  ) {
-    return Contract.at(address, ValueNotEqualContract.artifact, wallet) as Promise<ValueNotEqualContract>;
+  ): ValueNotEqualContract {
+    return Contract.at(address, ValueNotEqualContract.artifact, wallet) as ValueNotEqualContract;
   }
 
   
@@ -46,14 +46,14 @@ export class ValueNotEqualContract extends ContractBase {
    * Creates a tx to deploy a new instance of this contract.
    */
   public static deploy(wallet: Wallet, headstart: (bigint | number), owner: AztecAddressLike) {
-    return new DeployMethod<ValueNotEqualContract>(PublicKeys.default(), wallet, ValueNotEqualContractArtifact, ValueNotEqualContract.at, Array.from(arguments).slice(1));
+    return new DeployMethod<ValueNotEqualContract>(PublicKeys.default(), wallet, ValueNotEqualContractArtifact, (instance, wallet) => ValueNotEqualContract.at(instance.address, wallet), Array.from(arguments).slice(1));
   }
 
   /**
    * Creates a tx to deploy a new instance of this contract using the specified public keys hash to derive the address.
    */
   public static deployWithPublicKeys(publicKeys: PublicKeys, wallet: Wallet, headstart: (bigint | number), owner: AztecAddressLike) {
-    return new DeployMethod<ValueNotEqualContract>(publicKeys, wallet, ValueNotEqualContractArtifact, ValueNotEqualContract.at, Array.from(arguments).slice(2));
+    return new DeployMethod<ValueNotEqualContract>(publicKeys, wallet, ValueNotEqualContractArtifact, (instance, wallet) => ValueNotEqualContract.at(instance.address, wallet), Array.from(arguments).slice(2));
   }
 
   /**
@@ -67,7 +67,7 @@ export class ValueNotEqualContract extends ContractBase {
       opts.publicKeys ?? PublicKeys.default(),
       opts.wallet,
       ValueNotEqualContractArtifact,
-      ValueNotEqualContract.at,
+      (instance, wallet) => ValueNotEqualContract.at(instance.address, wallet),
       Array.from(arguments).slice(1),
       opts.method ?? 'constructor',
     );
@@ -102,9 +102,6 @@ export class ValueNotEqualContract extends ContractBase {
   /** Type-safe wrappers for the public methods exposed by the contract. */
   public declare methods: {
     
-    /** emit_in_public(n: field) */
-    emit_in_public: ((n: FieldLike) => ContractFunctionInteraction) & Pick<ContractMethod, 'selector'>;
-
     /** get_counter(owner: struct) */
     get_counter: ((owner: AztecAddressLike) => ContractFunctionInteraction) & Pick<ContractMethod, 'selector'>;
 
