@@ -4,7 +4,7 @@
 
 import { createAztecNodeClient, waitForNode } from "@aztec/aztec.js/node";
 import { getAztecNodeUrl, getL1RpcUrl } from "../config/config.js";
-import { createExtendedL1Client } from '@aztec/ethereum'
+import { createExtendedL1Client } from '@aztec/ethereum/client'
 import { TestWallet } from "@aztec/test-wallet/server";
 import { AztecAddress, EthAddress } from '@aztec/aztec.js/addresses'
 import { deployL1Contract } from "@aztec/ethereum/deploy-l1-contracts";
@@ -35,7 +35,7 @@ const logger = createLogger('raven: token-bridge');
 console.log(l1RpcUrl)
 
 const privateKeyAccount = privateKeyToAccount(`0x${process.env.ETHEREUM_WALLET_PRIVATE_KEY || ""}`)
-const l1Client = createExtendedL1Client(l1RpcUrl.split(','), privateKeyAccount, sepolia,);
+const l1Client = createExtendedL1Client(l1RpcUrl.split(','), privateKeyAccount, sepolia);
 const L2_TOKEN_CONTRACT_SALT = new Fr(1);
 
 
@@ -59,10 +59,11 @@ console.log({ ownerEthAddress, MINT_AMOUNT })
 
 const setupDevnetNetwork = async () => {
   const nodeUrl = getAztecNodeUrl();
+  console.log('Connecting to Aztec node at', nodeUrl);
   const node = createAztecNodeClient(nodeUrl);
   await waitForNode(node);
   console.log('Aztec node is ready');
-  const wallet = await TestWallet.create(node);
+  const wallet = await TestWallet.create(node , {proverEnabled: true});
   console.log('Test wallet created');
   return { node, wallet };
 };
@@ -130,7 +131,13 @@ logger.info(`Rollup Address: ${l1ContractAddresses.rollupAddress}`);
 
 // process.exit(1)
 
-const L2_TOKEN_ARGS = [ownerAztecAddress, 'Raven L2 TEST', 'RAVENL2TEST', 18] as any
+// const L2_TOKEN_ARGS = [ownerAztecAddress, 'Raven House Test', 'RHT', 18] as any
+
+const l2TokenContract = await TokenContract.deploy(wallet, ownerAztecAddress, "Raven House Test", "RHT", 18).send({
+      from: ownerAztecAddress,
+      fee: { paymentMethod: sponsoredPaymentMethod }
+ }).deployed({timeout: 1200000})
+
 
 // const l2TokenContract = await Contract.deploy(wallet, TokenContractArtifact, L2_TOKEN_ARGS, "constructor").send({
 //   from: ownerAztecAddress, fee: { paymentMethod: sponsoredPaymentMethod },
@@ -138,14 +145,15 @@ const L2_TOKEN_ARGS = [ownerAztecAddress, 'Raven L2 TEST', 'RAVENL2TEST', 18] as
 // }).deployed()
 
 //comment this when deploying new contract
-const l2TokenContractInstance = await getContractInstance(L2_TOKEN_ARGS, ownerAztecAddress, L2_TOKEN_CONTRACT_SALT, TokenContractArtifact)
-await wallet.registerContract(l2TokenContractInstance, TokenContractArtifact)
-const l2TokenContract = await TokenContract.at(AztecAddress.fromString(process.env.RAVENHOUSETEST_L2_TOKEN_ADDRESS || ""), wallet)
+// const l2TokenContractInstance = await getContractInstance(L2_TOKEN_ARGS, ownerAztecAddress, L2_TOKEN_CONTRACT_SALT, TokenContractArtifact)
+// await wallet.registerContract(l2TokenContractInstance, TokenContractArtifact)
+// const l2TokenContract = await TokenContract.at(AztecAddress.fromString(process.env.RAVENHOUSETEST_L2_TOKEN_ADDRESS || ""), wallet)
 
 
 logger.info(`L2 token contract deployed at ${l2TokenContract.address}`);
 // await contract.methods.set_minter(AztecAddress.fromString(process.env.AZTEC_ADMIN2_ADDRESS || ""), true).send({ from: ownerAztecAddress, fee: { paymentMethod: sponsoredPaymentMethod } }).wait();
 
+process.exit(1)
 
 
 // Deploy L1 token contract & mint tokens
