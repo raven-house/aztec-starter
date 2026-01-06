@@ -11,6 +11,7 @@ import { deployL1Contract } from "@aztec/ethereum/deploy-l1-contracts";
 import { TestERC20Abi, TestERC20Bytecode, FeeAssetHandlerAbi, FeeAssetHandlerBytecode, TokenPortalAbi, TokenPortalBytecode } from "@aztec/l1-artifacts";
 import { erc20Abi, getContract, PrivateKeyAccount } from "viem";
 import { TokenContract, TokenContractArtifact } from "@aztec/noir-contracts.js/Token";
+import { DripperContract } from "@defi-wonderland/aztec-standards/artifacts/Dripper"
 import { L1TokenManager, L1TokenPortalManager } from "@aztec/aztec.js/ethereum";
 import { createLogger } from "@aztec/aztec.js/log";
 import { TokenBridgeContract, TokenBridgeContractArtifact } from "@aztec/noir-contracts.js/TokenBridge";
@@ -24,7 +25,6 @@ import { getSponsoredFPCInstance } from "../src/utils/sponsored_fpc.js";
 import { SponsoredFPCContract } from "@aztec/noir-contracts.js/SponsoredFPC";
 import { SponsoredFeePaymentMethod } from "@aztec/aztec.js/fee";
 import { sleep } from "../src/utils/time.js";
-
 
 
 // sepolia RPC url
@@ -50,7 +50,7 @@ export async function getContractInstance(args: any[], deployer: AztecAddress, s
 
 // metamask wallet address
 const ownerEthAddress = l1Client.account.address;
-const MINT_AMOUNT = BigInt(1e3);
+const MINT_AMOUNT = BigInt(1e21);
 
 console.log({ ownerEthAddress, MINT_AMOUNT })
 // process.exit(1)
@@ -95,6 +95,26 @@ async function addMinter(l1TokenContract: EthAddress, l1TokenHandler: EthAddress
     client: l1Client,
   });
   await contract.write.addMinter([l1TokenHandler.toString()]);
+}
+
+async function mintTokensToWallet(l1TokenContract: EthAddress, recipientEthAddress: EthAddress, amount: bigint) {
+  const contract = getContract({
+    address: l1TokenContract.toString(),
+    
+    abi: TestERC20Abi,
+    client: l1Client,
+  });
+  await contract.write.mint([recipientEthAddress.toString(), amount]);
+}
+
+async function approveTokensToPortal(l1TokenContractAddress: EthAddress, l1PortalContractAddress: EthAddress, amount: bigint) {
+  const contract = getContract({
+    address: l1TokenContractAddress.toString(),
+    abi: TestERC20Abi,
+    client: l1Client,
+  });
+  await contract.write.approve([l1PortalContractAddress.toString(), amount]);
+  logger.info(`Approved ${amount} tokens for L1 portal contract ${l1PortalContractAddress.toString()}`);
 }
 
 
@@ -151,7 +171,25 @@ const l2TokenContract = await TokenContract.at(AztecAddress.fromString(process.e
 
 
 logger.info(`L2 token contract deployed at ${l2TokenContract.address}`);
-await l2TokenContract.methods.set_minter(AztecAddress.fromString(process.env.AZTEC_ADMIN2_ADDRESS || ""), true).send({ from: ownerAztecAddress, fee: { paymentMethod: sponsoredPaymentMethod } }).wait();
+// await l2TokenContract.methods.set_minter(AztecAddress.fromString(process.env.AZTEC_ADMIN2_ADDRESS || ""), true).send({ from: ownerAztecAddress, fee: { paymentMethod: sponsoredPaymentMethod } }).wait();
+
+// const dripperContract = await DripperContract.deploy(wallet).send({
+//   from: ownerAztecAddress,
+//   fee: { paymentMethod: sponsoredPaymentMethod },
+//   contractAddressSalt: L2_TOKEN_CONTRACT_SALT
+// }).deployed({ timeout: 1200000 })
+
+
+// console.log("dripper contract address" , dripperContract.address)
+
+
+// await l2TokenContract.methods.set_minter(dripperContract.address, true).send({ from: ownerAztecAddress, fee: { paymentMethod: sponsoredPaymentMethod } }).wait();
+
+// sleep(5000)
+
+// const dripTx = await dripperContract.withWallet(wallet).methods.drip_to_public(l2TokenContract.address , MINT_AMOUNT).send({ from: ownerAztecAddress, fee: { paymentMethod: sponsoredPaymentMethod } }).wait();
+
+// console.log({dripTx});
 
 // process.exit(1)
 
@@ -161,6 +199,9 @@ await l2TokenContract.methods.set_minter(AztecAddress.fromString(process.env.AZT
 // console.log("l1 token address", l1TokenContract.toString())
 // logger.info('erc20 contract deployed');
 // process.exit(1);
+
+
+
 const l1TokenContractAddress = EthAddress.fromString(process.env.RAVENHOUSETEST_TOKEN_ADDRESS || "")
 const l1TokenContract = getContract({
   address: l1TokenContractAddress.toString(),
@@ -168,20 +209,32 @@ const l1TokenContract = getContract({
   client: l1Client
 })
 
-// await addMinter(l1TokenContractAddress, "YASH METAMASK ADDRESS");
+// const tx = l1TokenContract.write.
 
+// const tx = await mintTokensToWallet( l1TokenContractAddress,  EthAddress.fromString(ownerEthAddress) , MINT_AMOUNT);
+// console.log(tx)
+// process.exit(1)
+
+
+await addMinter(l1TokenContractAddress, EthAddress.fromString("0x06a40722e44c74BbB4b7D8F6e355B5fc5f6B6eFc"));
+console.log('added minter to yash address')
+// process.exit(1);
+
+const tx = await mintTokensToWallet( l1TokenContractAddress,  EthAddress.fromString("0x06a40722e44c74BbB4b7D8F6e355B5fc5f6B6eFc") , MINT_AMOUNT);
+
+process.exit(1)
 // const feeAssetHandler = await deployFeeAssetHandler(l1TokenContractAddress);
 const feeAssetHandler = EthAddress.fromString(process.env.L1_FEE_ASSET_HANDLER_ADDRESS || "")
-// await addMinter(l1TokenContractAddress, feeAssetHandler);
+await addMinter(l1TokenContractAddress, feeAssetHandler);
 
 console.log("L1 fee asset handler address", feeAssetHandler.toString())
-
+// process.exit(1)
 const l1TokenManager = new L1TokenManager(l1TokenContractAddress, feeAssetHandler, l1Client, logger);
 
 // Deploy L1 portal contract: only deploy once
 // const l1PortalContractAddress = await deployTokenPortal();
 const l1PortalContractAddress = EthAddress.fromString(process.env.L1_PORTAL_CONTRACT_ADDRESS || "")
-logger.info('L1 portal contract deployed with address', l1PortalContractAddress.toString());
+console.log('L1 portal contract deployed with address', l1PortalContractAddress.toString());
 
 
 const l1Portal = getContract({
@@ -190,33 +243,33 @@ const l1Portal = getContract({
   client: l1Client,
 });
 
-// process.exit(1)
 
 const L2_BRIDGE_CONTRACT_ARGS = [l2TokenContract.address, l1PortalContractAddress] as any
 // Deploy L2 bridge contract
-const l2BridgeContract = await TokenBridgeContract.deploy(wallet, L2_BRIDGE_CONTRACT_ARGS[0], L2_BRIDGE_CONTRACT_ARGS[1])
-  .send({ from: ownerAztecAddress, fee: { paymentMethod: sponsoredPaymentMethod }, contractAddressSalt: L2_TOKEN_CONTRACT_SALT })
-  .deployed();
+// const l2BridgeContract = await TokenBridgeContract.deploy(wallet, L2_BRIDGE_CONTRACT_ARGS[0], L2_BRIDGE_CONTRACT_ARGS[1])
+//   .send({ from: ownerAztecAddress, fee: { paymentMethod: sponsoredPaymentMethod }, contractAddressSalt: L2_TOKEN_CONTRACT_SALT })
+//   .deployed();
 
 //comments this 3 lines if deploying new contract
 const l2BridgeContractInstance = await getContractInstance(L2_BRIDGE_CONTRACT_ARGS, ownerAztecAddress, L2_BRIDGE_CONTRACT_ARGS, TokenBridgeContractArtifact)
 await wallet.registerContract(l2BridgeContractInstance, TokenBridgeContractArtifact)
-// const l2BridgeContract = await TokenBridgeContract.at(l2BridgeContractInstance.address, wallet)
+const l2BridgeContract = await TokenBridgeContract.at(l2BridgeContractInstance.address, wallet)
 
-logger.info(`L2 token bridge contract deployed at ${l2BridgeContract.address}`);
+console.log(`L2 token bridge contract deployed at ${l2BridgeContract.address}`);
+
 // docs:end:deploy-l2-bridge
 
 // Set Bridge as a minter
 // docs:start:authorize-l2-bridge
-await l2TokenContract.methods.set_minter(l2BridgeContract.address, true).send({ from: ownerAztecAddress, fee: { paymentMethod: sponsoredPaymentMethod } }).wait();
+// await l2TokenContract.methods.set_minter(l2BridgeContract.address, true).send({ from: ownerAztecAddress, fee: { paymentMethod: sponsoredPaymentMethod } }).wait();
 // docs:end:authorize-l2-bridge
 
 // Initialize L1 portal contract
 // docs:start:setup-portal
-await l1Portal.write.initialize(
-  [l1ContractAddresses.registryAddress.toString(), l1TokenContractAddress.toString(), l2BridgeContract.address.toString()],
-  {},
-);
+// await l1Portal.write.initialize(
+//   [l1ContractAddresses.registryAddress.toString(), l1TokenContractAddress.toString(), l2BridgeContract.address.toString()],
+//   {},
+// );
 logger.info('L1 portal contract initialized');
 
 console.log({
@@ -225,6 +278,7 @@ console.log({
   feeAssetHandler,
   outboxAddress: l1ContractAddresses.outboxAddress,
 })
+// process.exit(1);
 
 const l1PortalManager = new L1TokenPortalManager(
   l1PortalContractAddress,
@@ -235,12 +289,20 @@ const l1PortalManager = new L1TokenPortalManager(
   logger,
 );
 
-
-
 // docs:end:setup-portal
 
+// minting MINT_AMOUNT tokens to owner address
+
+// await approveTokensToPortal(l1TokenContractAddress, l1PortalContractAddress, MINT_AMOUNT);
+// process.exit();
+
+
 // docs:start:l1-bridge-public
-const claim = await l1PortalManager.bridgeTokensPublic(ownerAztecAddress, MINT_AMOUNT, true);
+
+
+const claim = await l1PortalManager.bridgeTokensPublic(ownerAztecAddress, MINT_AMOUNT, false);
+
+console.log("claim done");
 
 const currentNode = await node.getBlockNumber();
 let initial = currentNode;
