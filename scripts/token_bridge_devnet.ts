@@ -27,6 +27,9 @@ import { sleep } from "../src/utils/time.js";
 
 
 
+const PERMIT2_ADDRESS = '0x000000000022D473030F116dDEE9F6B43aC78BA3';
+const MAX_UINT256 = BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff');
+
 // sepolia RPC url
 const l1RpcUrl = getL1RpcUrl();
 const logger = createLogger('raven: token-bridge');
@@ -145,13 +148,13 @@ const L2_TOKEN_ARGS = [ownerAztecAddress, 'Raven House Test', 'RHT', 18] as any
 // }).deployed()
 
 //comment this when deploying new contract
-const l2TokenContractInstance = await getContractInstance(L2_TOKEN_ARGS, ownerAztecAddress, L2_TOKEN_CONTRACT_SALT, TokenContractArtifact)
-await wallet.registerContract(l2TokenContractInstance, TokenContractArtifact)
-const l2TokenContract = await TokenContract.at(AztecAddress.fromString(process.env.RAVENHOUSETEST_L2_TOKEN_ADDRESS || ""), wallet)
+// const l2TokenContractInstance = await getContractInstance(L2_TOKEN_ARGS, ownerAztecAddress, L2_TOKEN_CONTRACT_SALT, TokenContractArtifact)
+// await wallet.registerContract(l2TokenContractInstance, TokenContractArtifact)
+// const l2TokenContract = await TokenContract.at(AztecAddress.fromString(process.env.RAVENHOUSETEST_L2_TOKEN_ADDRESS || ""), wallet)
 
 
-logger.info(`L2 token contract deployed at ${l2TokenContract.address}`);
-await l2TokenContract.methods.set_minter(AztecAddress.fromString(process.env.AZTEC_ADMIN2_ADDRESS || ""), true).send({ from: ownerAztecAddress, fee: { paymentMethod: sponsoredPaymentMethod } }).wait();
+// logger.info(`L2 token contract deployed at ${l2TokenContract.address}`);
+// await l2TokenContract.methods.set_minter(AztecAddress.fromString(process.env.AZTEC_ADMIN2_ADDRESS || ""), true).send({ from: ownerAztecAddress, fee: { paymentMethod: sponsoredPaymentMethod } }).wait();
 
 // process.exit(1)
 
@@ -167,6 +170,27 @@ const l1TokenContract = getContract({
   abi: erc20Abi,
   client: l1Client
 })
+
+
+
+const permit2Allowance = await l1TokenContract.read.allowance([
+  ownerEthAddress,
+  PERMIT2_ADDRESS
+]);
+
+console.log("Current Permit2 allowance is", permit2Allowance.toString())
+
+if (permit2Allowance < MINT_AMOUNT) {
+  logger.info('Approving Permit2 contract...');
+  await l1TokenContract.write.approve([
+    PERMIT2_ADDRESS,
+    MAX_UINT256
+  ]);
+  logger.info('Permit2 approved');
+}
+
+
+process.exit(1)
 
 // await addMinter(l1TokenContractAddress, "YASH METAMASK ADDRESS");
 

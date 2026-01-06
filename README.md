@@ -1,21 +1,9 @@
-<<<<<<< HEAD
-
 # Raven Aztec bridge
-=======
-<div align="center">
-  <a href="https://aztec.network">
-    <img src="https://cdn.prod.website-files.com/6847005bc403085c1aa846e0/6847514dc37a9e8cfe8a66b8_aztec-logo.svg" alt="Aztec Protocol Logo" width="300">
-  </a>
-</div>
-
-# Aztec Starter
->>>>>>> upstream/main
 
 ## Sandbox
 
 This repo is meant to be a starting point for learning to write Aztec contracts and tests on the Aztec sandbox (local development environment). It includes an example contract, useful commands in `package.json` and helpful scripts in `./scripts`.
 
-<<<<<<< HEAD
 You can find the **Easy Private Voting contract** in `./src/main.nr`. A simple integration test is in `./src/test/e2e/index.test.ts`.
 
 ## Devnet
@@ -24,44 +12,6 @@ This repo connects to a locally running Aztec Sandbox by default, but can be con
 
 ---
 
-=======
-You can find the **Pod Racing Game contract** in `./src/main.nr`. A simple integration test is in `./src/test/e2e/index.test.ts`.
-
-The Pod Racing contract is a two-player competitive game where players allocate points across 5 tracks over multiple rounds. The game demonstrates Aztec's private state capabilities - round choices remain private until players reveal their final scores.
-
-## Devnet
-
-This repo connects to a locally running Aztec Sandbox by default, but can be configured to connect to the devnet by specifying `AZTEC_ENV=devnet` in a `.env` file or by prefixing a command e.g. `AZTEC_ENV=devnet yarn deploy`.
-
-<div align="center">
-
-[![GitHub Repo stars](https://img.shields.io/github/stars/AztecProtocol/aztec-starter?logo=github&color=yellow)](https://github.com/AztecProtocol/aztec-starter/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/AztecProtocol/aztec-starter?logo=github&color=blue)](https://github.com/AztecProtocol/aztec-starter/network/members)
-[![Build](https://github.com/AztecProtocol/aztec-starter/actions/workflows/update.yaml/badge.svg)](https://github.com/AztecProtocol/aztec-starter/actions)
-[![GitHub last commit](https://img.shields.io/github/last-commit/AztecProtocol/aztec-starter?logo=git)](https://github.com/AztecProtocol/aztec-starter/commits/main)
-[![License](https://img.shields.io/github/license/AztecProtocol/aztec-starter)](https://github.com/AztecProtocol/aztec-starter/blob/main/LICENSE)
-[![Discord](https://img.shields.io/badge/discord-join%20chat-5B5EA6)](https://discord.gg/aztec)
-[![Twitter Follow](https://img.shields.io/twitter/follow/aztecnetwork?style=flat&logo=twitter)](https://x.com/aztecnetwork)
-
-</div>
-
----
-
-## 🚀 **Getting Started**
-
-Use **Node.js version 22.15.0**.
-
-[Start your codespace from the codespace dropdown](https://docs.github.com/en/codespaces/getting-started/quickstart).
-
-Get the **sandbox, aztec-cli, and other tooling** with this command:
-
-```bash
-bash -i <(curl -s https://install.aztec.network)
-```
-
-Install the correct version of the toolkit with:
-
->>>>>>> upstream/main
 ```bash
 export VERSION=3.0.0-devnet.5
 aztec-up && docker pull aztecprotocol/aztec:$VERSION && docker tag aztecprotocol/aztec:$VERSION aztecprotocol/aztec:latest
@@ -83,25 +33,15 @@ The configuration files contain network URLs, timeouts, and environment-specific
 Start the sandbox with:
 
 ```bash
-<<<<<<< HEAD
 aztec start --local-network
-=======
-aztec start --sandbox
->>>>>>> upstream/main
 ```
 
 Run scripts and tests with default sandbox configuration:
 
 ```bash
-<<<<<<< HEAD
 bun compile && bun codegen  # Compile contract and generate TS
 bun deploy       # Deploy to sandbox
 bun test         # Run tests on sandbox
-=======
-yarn compile && yarn codegen  # Compile contract and generate TS
-yarn deploy       # Deploy to sandbox
-yarn test         # Run tests on sandbox
->>>>>>> upstream/main
 ```
 
 ### Running on Devnet
@@ -109,17 +49,10 @@ yarn test         # Run tests on sandbox
 All scripts support a `::devnet` suffix to automatically use devnet configuration:
 
 ```bash
-<<<<<<< HEAD
 bun deploy::devnet              # Deploy to devnet
 bun test::devnet                # Run tests on devnet
 bun deploy-account::devnet      # Deploy account to devnet
 bun interaction-existing-contract::devnet  # Interact with devnet contracts
-=======
-yarn deploy::devnet              # Deploy to devnet
-yarn test::devnet                # Run tests on devnet
-yarn deploy-account::devnet      # Deploy account to devnet
-yarn interaction-existing-contract::devnet  # Interact with devnet contracts
->>>>>>> upstream/main
 ```
 
 The `::devnet` suffix automatically sets `ENV=devnet`, loading configuration from `config/devnet.json`.
@@ -147,11 +80,7 @@ aztec-nargo compile
 or
 
 ```bash
-<<<<<<< HEAD
 bun compile
-=======
-yarn compile
->>>>>>> upstream/main
 ```
 
 ---
@@ -161,11 +90,7 @@ yarn compile
 Generate the **contract artifact JSON** and TypeScript interface:
 
 ```bash
-<<<<<<< HEAD
 bun codegen
-=======
-yarn codegen
->>>>>>> upstream/main
 ```
 
 ---
@@ -183,21 +108,13 @@ aztec start --sandbox
 Then run an example contract deployment profile with:
 
 ```bash
-<<<<<<< HEAD
 bun profile
-=======
-yarn profile
->>>>>>> upstream/main
 ```
 
 You can specify the bb binary path for faster native proving, e.g.
 
 ```bash
-<<<<<<< HEAD
 BB_BINARY_PATH="/home/user/.bb/bb" BB_WORKING_DIRECTORY="/tmp/bb" CRS_PATH="/tmp/bb" bun profile
-=======
-BB_BINARY_PATH="/home/user/.bb/bb" BB_WORKING_DIRECTORY="/tmp/bb" CRS_PATH="/tmp/bb" yarn profile
->>>>>>> upstream/main
 ```
 
 See the [demo-wallet for an example](https://github.com/AztecProtocol/demo-wallet/blob/main/app/scripts/copyBB.js) of how to fetch the appropriate bb binary (version and OS) in an application.
@@ -213,11 +130,7 @@ aztec start --sandbox
 Then test with:
 
 ```bash
-<<<<<<< HEAD
 bun test
-=======
-yarn test
->>>>>>> upstream/main
 ```
 
 Testing will run the **TypeScript tests** defined in `index.test.ts` inside `./src/test/e2e`, as well as the [Aztec Testing eXecution Environment (TXE)](https://docs.aztec.network/developers/guides/smart_contracts/testing) tests defined in [`first.nr`](./src/test/first.nr) (imported in the contract file with `mod test;`).
@@ -235,11 +148,7 @@ You can find a handful of scripts in the `./scripts` folder.
 - `./scripts/fees.ts` is an example of how to pay for a contract deployment using various fee payment methods.
 - `./scripts/multiple_wallet.ts` is an example of how to deploy a contract from one wallet instance and interact with it from another.
 - `./scripts/profile_deploy.ts` shows how to profile a transaction and print the results.
-<<<<<<< HEAD
 - `./scripts/interaction_existing_contract.ts` demonstrates how to interact with an already deployed voting contract, including casting votes and checking vote counts.
-=======
-- `./scripts/interaction_existing_contract.ts` demonstrates how to interact with an already deployed pod racing contract, including creating games.
->>>>>>> upstream/main
 - `./scripts/get_block.ts` is an example of how to retrieve and display block information from the Aztec node.
 
 ### Utility Functions
@@ -259,11 +168,7 @@ The `./src/utils/` folder contains utility functions:
 ### 🔄 **Update Node.js and Noir Dependencies**
 
 ```bash
-<<<<<<< HEAD
 bun update
-=======
-yarn update
->>>>>>> upstream/main
 ```
 
 ### 🔄 **Update Contract**
@@ -271,11 +176,7 @@ yarn update
 Get the **contract code from the monorepo**. The script will look at the versions defined in `./Nargo.toml` and fetch that version of the code from the monorepo.
 
 ```bash
-<<<<<<< HEAD
 bun update
-=======
-yarn update
->>>>>>> upstream/main
 ```
 
 You may need to update permissions with:
@@ -290,10 +191,6 @@ This repository includes an [AGENTS.md](./AGENTS.md) file with detailed
 instructions for setting up your environment, running tests, and creating
 pull requests. Please read it before contributing changes.
 
-<<<<<<< HEAD
-
-
-
 # What is Anvil
 
 Anvil is a fast local ethereum development node
@@ -304,21 +201,57 @@ Anvil is part of the Foundry suit and is installed alongside forge, cast and chi
 anvil --fork-url <RPC_URL>
 ```
 
-=======
-### 💬 Join the Community:
+# What is Permit2?
 
-<p align="left">
-  <a href="https://forum.aztec.network">
-    <img src="https://img.shields.io/badge/Aztec%20%20Forum-5C4C9F?style=for-the-badge&logo=startrek&logoColor=white" alt="Forum">
-  </a>  
-  <a href="https://t.me/AztecAnnouncements_Official">
-    <img src="https://img.shields.io/badge/Telegram-26A5E4?logo=telegram&logoColor=white&style=for-the-badge" alt="Telegram">
-  </a>
-  <a href="https://discord.gg/aztec">
-    <img src="https://img.shields.io/badge/Discord-5865F2?logo=discord&logoColor=white&style=for-the-badge" alt="Discord">
-  </a>
-  <a href="https://x.com/aztecnetwork">
-    <img src="https://img.shields.io/badge/Twitter-000000?logo=x&logoColor=white&style=for-the-badge" alt="Twitter (X)">
-  </a>
-</p>
->>>>>>> upstream/main
+Permit2 is Uniswap's token approval contract that provides a more efficient and secure way to manage token approvals for smart contracts. Instead of users granting unlimited approvals to multiple contracts, they grant a single approval to the Permit2 contract, which then manages granular permissions through off-chain signatures.
+Key Benefits
+
+https://github.com/Uniswap/permit2
+
+**Single Approval**: Users approve Permit2 once per token, instead of approving every protocol individually
+**Signature-based Transfers**: Uses EIP-712 signatures for gasless approvals with expiration times
+**Batch Operations**: Can approve multiple tokens or transfer to multiple recipients in one transaction
+**Revocable Permissions**: Users can revoke permissions without needing to set allowances to zero
+**Better UX**: Reduces transaction count and gas costs for users bridging tokens
+
+**Current Flow (L1 → L2)**
+
+User calls approve() on L1 token contract for the portal
+Portal pulls tokens via transferFrom()
+Tokens are locked and message sent to L2
+User claims on L2 via bridge contract
+
+**Permit2 Flow (L1 → L2)**
+
+User signs a Permit2 message off-chain (no gas cost)
+User calls bridge function with signature included
+Bridge uses Permit2 to pull tokens atomically
+Same L2 claiming process
+
+```
+┌─────────────┐
+│   User      │
+│  Wallet     │
+└──────┬──────┘
+       │ Signs Permit2 Message
+       ↓
+┌─────────────────────────────┐
+│  Your Portal Contract (L1)  │
+│  - Validates signature      │
+│  - Calls Permit2.permit()   │
+│  - Transfers tokens         │
+│  - Sends L2 message         │
+└─────────────┬───────────────┘
+              │
+              ↓
+┌─────────────────────────────┐
+│   Permit2 Contract (L1)     │
+│   (Already deployed)        │
+│   0x000000000022D473030F116dDEE9F6B43aC78BA3 │
+└─────────────────────────────┘
+
+```
+
+## Permit 2 resources
+
+- https://www.cyfrin.io/blog/how-to-implement-permit2
