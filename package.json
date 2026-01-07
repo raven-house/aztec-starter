@@ -15,6 +15,7 @@
     "codegen": "aztec codegen target --outdir src/artifacts",
     "bridge": "bun run scripts/token_bridge.ts",
     "bridge-devnet": "AZTEC_ENV=devnet bun run scripts/token_bridge_devnet.ts",
+    "token-devnet": "AZTEC_ENV=devnet bun run scripts/deploy_token_and_dripper.ts",
     "compile": "${AZTEC_NARGO:-aztec-nargo} compile && aztec-postprocess-contract",
     "deploy": "NODE_NO_WARNINGS=1 node --loader ts-node/esm scripts/deploy_contract.ts",
     "deploy::devnet": "NODE_NO_WARNINGS=1 AZTEC_ENV=devnet node --loader ts-node/esm scripts/deploy_contract.ts",
